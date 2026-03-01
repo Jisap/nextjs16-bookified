@@ -63,22 +63,22 @@ const UploadForm = () => {
       const fileTitle = data.title.replace(/\s+/g, '-').toLowerCase();         // Normaliza el título para nombres de archivo
       const pdfFile = data.pdfFile;
 
-      const parsedPDF = await parsePDFFile(pdfFile);                          // Procesa el PDF localmente: extrae texto y genera portada
+      const parsedPDF = await parsePDFFile(pdfFile);                           // Procesa el PDF localmente: extrae texto y genera portada
 
-      if (parsedPDF.content.length === 0) {                                   // Valida que el PDF tenga contenido de texto extraíble
+      if (parsedPDF.content.length === 0) {                                    // Valida que el PDF tenga contenido de texto extraíble
         toast.error("Failed to parse PDF. Please try again with a different file.");
         return;
       }
 
-      const uploadedPdfBlob = await upload(fileTitle, pdfFile, {              // Sube el PDF a Vercel Blob Storage
+      const uploadedPdfBlob = await upload(fileTitle, pdfFile, {               // Sube el PDF a Vercel Blob Storage
         access: 'public',
         handleUploadUrl: '/api/upload',
-        contentType: 'application/pdf'                                        // Asegura el tipo de contenido correcto
+        contentType: 'application/pdf'                                         // Asegura el tipo de contenido correcto
       });
 
       let coverUrl: string;
 
-      if (data.coverImage) {                                                  // Si el usuario subió una portada personalizada
+      if (data.coverImage) {                                                   // Si el usuario subió una portada personalizada
         const coverFile = data.coverImage;
         const uploadedCoverBlob = await upload(`${fileTitle}_cover.png`, coverFile, { // Sube la imagen personalizada
           access: 'public',

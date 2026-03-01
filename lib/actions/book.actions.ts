@@ -146,6 +146,15 @@ export const getBookBySlug = async (slug: string) => {
   }
 }
 
+/**
+ * 
+ * Su propósito principal es persistir el contenido del libro en la base de datos, 
+ * pero dividido en fragmentos manejables en lugar de un solo bloque de texto gigante.
+ * Cuando se haga una pregunta a la IA sobre el libro se busca en segmentos no en 
+ * el libro entero
+ * 
+ */
+
 export const saveBookSegments = async (bookId: string, clerkId: string, segments: TextSegment[]) => {
   try {
     await connectToDatabase();
@@ -157,9 +166,9 @@ export const saveBookSegments = async (bookId: string, clerkId: string, segments
       clerkId, bookId, content: text, segmentIndex, pageNumber, wordCount
     }));
 
-    await BookSegment.insertMany(segmentsToInsert);                           // Inserta todos los segmentos en una sola operación
+    await BookSegment.insertMany(segmentsToInsert);                               // Inserta todos los segmentos en una sola operación
 
-    await Book.findByIdAndUpdate(bookId, { totalSegments: segments.length }); // Actualiza el contador de segmentos del libro
+    await Book.findByIdAndUpdate(bookId, { totalSegments: segments.length });     // Actualiza el contador de segmentos del libro
 
     console.log('Book segments saved successfully.');
 

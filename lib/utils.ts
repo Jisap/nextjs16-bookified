@@ -31,28 +31,28 @@ export const escapeRegex = (str: string): string => {
 export const splitIntoSegments = (
   text: string,
   segmentSize: number = 500, // Maximum words per segment
-  overlapSize: number = 50, // Words to overlap between segments for context
+  overlapSize: number = 50,  // Words to overlap between segments for context
 ): TextSegment[] => {
-  // Validate parameters to prevent infinite loops
-  if (segmentSize <= 0) {
+
+  if (segmentSize <= 0) {                                                                 // Validate parameters to prevent infinite loops
     throw new Error('segmentSize must be greater than 0');
   }
   if (overlapSize < 0 || overlapSize >= segmentSize) {
     throw new Error('overlapSize must be >= 0 and < segmentSize');
   }
 
-  const words = text.split(/\s+/).filter((word) => word.length > 0);
-  const segments: TextSegment[] = [];
+  const words = text.split(/\s+/).filter((word) => word.length > 0);                      // Split text into words
+  const segments: TextSegment[] = [];                                                     // Inicializa el array de segmentos
 
-  let segmentIndex = 0;
-  let startIndex = 0;
+  let segmentIndex = 0;                                                                   // Inicializa el índice del segmento
+  let startIndex = 0;                                                                     // Inicializa el índice de inicio
 
-  while (startIndex < words.length) {
-    const endIndex = Math.min(startIndex + segmentSize, words.length);
-    const segmentWords = words.slice(startIndex, endIndex);
-    const segmentText = segmentWords.join(' ');
+  while (startIndex < words.length) {                                                     // Mientras el índice < que el total de palabras
+    const endIndex = Math.min(startIndex + segmentSize, words.length);                    // Obtiene el índice final
+    const segmentWords = words.slice(startIndex, endIndex);                               // Obtiene el segmento de texto
+    const segmentText = segmentWords.join(' ');                                           // Une las palabras con espacios
 
-    segments.push({
+    segments.push({                                                                       // Agrega el segmento al array
       text: segmentText,
       segmentIndex,
       wordCount: segmentWords.length,
@@ -92,7 +92,8 @@ export const formatDuration = (seconds: number): string => {
 
 export async function parsePDFFile(file: File) {
   try {
-    const pdfjsLib = await import('pdfjs-dist');
+    // pdfjs-dist es la librería que permite leer PDFs
+    const pdfjsLib = await import('pdfjs-dist');                           // Importación dinámica para no cargar la librería hasta que sea necesaria (ahorra peso inicial)
 
     if (typeof window !== 'undefined') {
       pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
@@ -101,18 +102,18 @@ export async function parsePDFFile(file: File) {
       ).toString();
     }
 
-    // Read file as array buffer
-    const arrayBuffer = await file.arrayBuffer();
+    // 1. Lee el archivo binario
+    const arrayBuffer = await file.arrayBuffer();                          // Convierte el File object a un buffer que PDF.js pueda leer
 
-    // Load PDF document
-    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-    const pdfDocument = await loadingTask.promise;
+    // 2. Carga el documento PDF
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });       // Inicia la tarea de carga
+    const pdfDocument = await loadingTask.promise;                         // Espera a que el PDF esté listo en memoria
 
-    // Render first page as cover image
-    const firstPage = await pdfDocument.getPage(1);
-    const viewport = firstPage.getViewport({ scale: 2 }); // 2x scale for better quality
+    // 3. Genera la Portada (Renderiza la página 1)
+    const firstPage = await pdfDocument.getPage(1);                        // Obtiene la primera página
+    const viewport = firstPage.getViewport({ scale: 2 });                  // Escala 2x para que la portada se vea nítida en pantallas retina
 
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement('canvas');                       // Crea un canvas en memoria (no visible)
     canvas.width = viewport.width;
     canvas.height = viewport.height;
     const context = canvas.getContext('2d');
@@ -121,31 +122,32 @@ export async function parsePDFFile(file: File) {
       throw new Error('Could not get canvas context');
     }
 
+    // Dibuja la página en el canvas
     await firstPage.render({
       canvasContext: context,
       viewport: viewport,
     } as any).promise;
 
-    // Convert canvas to data URL
+    // Convierte el canvas a una imagen PNG (Data URL base64)
     const coverDataURL = canvas.toDataURL('image/png');
 
-    // Extract text from all pages
+    // 4. Extracción de Texto (Loop por todas las páginas)
     let fullText = '';
 
     for (let pageNum = 1; pageNum <= pdfDocument.numPages; pageNum++) {
       const page = await pdfDocument.getPage(pageNum);
-      const textContent = await page.getTextContent();
+      const textContent = await page.getTextContent(); // Obtiene los elementos de texto de la página
       const pageText = textContent.items
-        .filter((item) => 'str' in item)
-        .map((item) => (item as { str: string }).str)
-        .join(' ');
-      fullText += pageText + '\n';
+        .filter((item) => 'str' in item)               // Filtra elementos vacíos o de formato
+        .map((item) => (item as { str: string }).str)  // Extrae solo el string de texto
+        .join(' ');                                    // Une las palabras con espacios
+      fullText += pageText + '\n';                     // Añade el texto de la página al total
     }
 
-    // Split text into segments for search
-    const segments = splitIntoSegments(fullText);
+    // 5. Segmentación (Divide el texto gigante en trozos manejables para la IA)
+    const segments = splitIntoSegments(fullText);       // Usa la función de ventana deslizante definida arriba
 
-    // Clean up PDF document resources
+    // Limpieza de memoria
     await pdfDocument.destroy();
 
     return {
