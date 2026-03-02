@@ -27,8 +27,8 @@ export const connectToDatabase = async () => {                                 /
     cached.conn = await cached.promise;                                        // Espera a que la promesa se resuelva y guarda la conexión
   } catch (e) {
     cached.promise = null;                                                     // Resetea la promesa si falla para permitir reintentos futuros
-    console.error('MongoDB connection error. Please make sure MongoDB is running. ' + e); // Loguea el error crítico
-    throw e;                                                                   // Relanza el error para que la aplicación lo maneje
+    console.error(`MongoDB connection error (URI starting with ${MONGODB_URI?.slice(0, 15)}...). Original error:`, e);
+    throw e;
   }
 
   console.info('Connected to MongoDB');                                        // Confirma conexión exitosa en consola

@@ -114,7 +114,7 @@ const UploadForm = () => {
           ? book.error
           : ((book.error as any) instanceof Error ? (book.error as any).message : "Failed to create book");
 
-        toast.error(errorMessage);        // Maneja errores de creación (ej. límites del plan)
+        toast.error(errorMessage);                                           // Maneja errores de creación (ej. límites del plan)
         if (book.isBillingError) {                                           // Redirige a suscripciones si es error de facturación
           router.push("/subscriptions");
         }
