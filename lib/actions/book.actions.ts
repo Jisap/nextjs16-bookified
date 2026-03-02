@@ -34,7 +34,7 @@ export const getAllBooks = async (search?: string) => {
   } catch (e) {
     console.error('Error connecting to database', e);
     return {
-      success: false, error: e
+      success: false, error: (e as Error).message || 'Error connecting to database'
     }
   }
 }
@@ -60,7 +60,7 @@ export const checkBookExists = async (title: string) => {
   } catch (e) {
     console.error('Error checking book exists', e);
     return {
-      exists: false, error: e
+      exists: false, error: e instanceof Error ? e.message : 'Error checking book exists'
     }
   }
 }
@@ -119,7 +119,7 @@ export const createBook = async (data: CreateBook) => {
 
     return {
       success: false,
-      error: e,
+      error: (e as Error).message || 'Error creating a book',
     }
   }
 }
@@ -141,7 +141,7 @@ export const getBookBySlug = async (slug: string) => {
   } catch (e) {
     console.error('Error fetching book by slug', e);
     return {
-      success: false, error: e
+      success: false, error: (e as Error).message || 'Error fetching book by slug'
     }
   }
 }
@@ -181,7 +181,7 @@ export const saveBookSegments = async (bookId: string, clerkId: string, segments
 
     return {
       success: false,
-      error: e,
+      error: (e as Error).message || 'Error saving book segments',
     }
   }
 }

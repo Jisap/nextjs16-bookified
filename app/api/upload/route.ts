@@ -36,10 +36,10 @@ export async function POST(request: Request): Promise<NextResponse> {
           allowedContentTypes: ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'],
           addRandomSuffix: true,
           maximumSizeInBytes: MAX_FILE_SIZE,
-          tokenPayload: JSON.stringify({ userId })                // Guarda metadatos en el token para usarlos al completar
+          tokenPayload: JSON.stringify({ userId })                 // Guarda metadatos en el token para usarlos al completar
         }
       },
-      onUploadCompleted: async ({ blob, tokenPayload }) => {      // Hook que se ejecuta cuando la subida finaliza exitosamente
+      onUploadCompleted: async ({ blob, tokenPayload }) => {       // Hook que se ejecuta cuando la subida finaliza exitosamente
         console.log('File uploaded to blob: ', blob.url)
 
         const payload = tokenPayload ? JSON.parse(tokenPayload) : null
